@@ -1,0 +1,27 @@
+Note to gear admin/owner
+The config files in this dir are not actually actively used unless 
+the rsyslogctl.sh script is edited in the master embedded cartridge
+location. 
+
+Logs are located in /tmp/ along with a socket for application logs to use: 
+/tmp/log  
+
+Test this with the logger command: 
+logger -d -u /tmp/log "hello world" 
+
+FOR REMOTE LOGGING TO AN EXTERNAL HOST: 
+There are two options for remote logging 
+either open an rsyslogd remote logging port on the local machine, 
+and configure the remote host line in the rsyslog.conf file located
+in this directory to 127.0.0.1:514 (this assumes that your openshift node 
+runs a log parser/agent) 
+or export the logs straight from the gear itself by adding an alternative 
+network address in the remote syslog server for the gear. 
+
+For your application you may want to create a sym-link to the required directory
+in app-root for the logging socket: /tmp/log 
+
+When you remove the rsyslogd configuration the cartridge is disabled from the gear
+but the logs are left in place. 
+
+Otherwise you are on your own :)  
