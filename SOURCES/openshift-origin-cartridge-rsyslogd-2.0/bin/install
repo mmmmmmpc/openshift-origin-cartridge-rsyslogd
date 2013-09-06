@@ -24,7 +24,7 @@ done
 
 cartridge_type="rsyslogd-2.0"
 source "/etc/openshift/node.conf"
-source ${CARTRIDGE_BASE_PATH}/abstract/info/lib/util
+source ${CARTRIDGE_BASE_PATH}/abstract/lib/util
 
 
 setup_embedded_configure "$1" $2 $3
@@ -62,10 +62,10 @@ observe_setup_var_lib_dir "$RSYSLOG_INSTANCE_DIR"
 #
 
 
-# Alter PATH so that the rsyslogd app_ctl.sh script is called.
-export PATH=${CART_INFO_DIR}/bin/app_ctl.sh:$PATH
+# Alter PATH so that the rsyslogd "setup" script is called.
+export PATH=${CART_INFO_DIR}/bin/:$PATH
 sed -i "s#export \s*PATH=#export PATH=$PATH:#" $OPENSHIFT_HOMEDIR/.env/PATH
-super_run_as_user "$CART_INFO_DIR/bin/app_ctl.sh enable"
+super_run_as_user "$CART_INFO_DIR/bin/setup enable"
 sleep 1
 
 source $CART_INFO_DIR/configuration/etc/rsyslog
