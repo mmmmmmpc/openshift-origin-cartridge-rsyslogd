@@ -2,7 +2,7 @@
 
 Name: openshift-origin-cartridge-rsyslogd
 Version: 2.0
-Release: 2%{?dist}
+Release: 5%{?dist}
 Summary: Embedded rsyslogd support for OpenShift
 
 Group: Network/Daemons
@@ -50,6 +50,17 @@ rm -rf %{buildroot}
 %doc %{cartridgedir}/LICENSE
 
 %changelog
+* Fri Sep 05 2013 Miguel Pérez Colino <mperez@redhat.com> 2.0-5
+- Modified setup and control scripts
+- Removed symlinks and replaced it with files
+
+* Thu Sep 04 2013 Miguel Pérez Colino <mperez@redhat.com> 2.0-4
+- Modified categories in manifest.yml
+
+* Thu Sep 04 2013 Miguel Pérez Colino <mperez@redhat.com> 2.0-3
+- Modified manifest.yml
+- Changes to contro script
+
 * Wed Aug 14 2013 Miguel Pérez Colino <mperez@redhat.com> 2.0-2
 - Modified manifest.yml to add missing vars
 

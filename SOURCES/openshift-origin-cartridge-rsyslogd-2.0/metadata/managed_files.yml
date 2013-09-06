@@ -8,4 +8,3 @@ locked_files:
 - conf/
 processed_templates:
 - '**/*.erb'
-
