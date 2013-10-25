@@ -1,0 +1,90 @@
+#!/bin/bash 
+set -e 
+#set -x
+
+cartridge_type="rsyslogd-2.0"
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+# Control application's embedded remote logging service (rsyslog)
+
+function _is_rsyslogd_enabled() {
+   [ -f ${OPENSHIFT_RSYSLOG_DIR}/run/syslogd.pid ]  &&  return 0
+   return 1
+
+}  #  End of function  _is_syslogd_enabled.
+
+
+function _rsyslogd_status() {
+   if [ -f "${OPENSHIFT_RSYSLOG_DIR}/run/syslogd.pid" ]; then
+      njobs=1
+      if (/sbin/pidof rsyslogd); then 
+        echo "rsyslogd is running"
+      else 
+        echo "rsyslogd lockfile present but process dead" 1>&2
+      fi
+   fi
+   if _is_rsyslogd_enabled; then
+      echo "rsyslogd logging service is enabled" 1>&2
+   else
+      echo "rsyslogd logging service is disabled" 1>&2
+   fi
+
+}  #  End of function  _rsyslogd_status.
+
+
+function _rsyslogd_enable() {
+    # if we are not configured then configure us
+    # we should probably call hooks/configure instead here
+    if [ -f /${OPENSHIFT_RSYSLOG_DIR}/configuration/etc/rsyslog ] ; then
+       echo "using rsyslog variables dir: /${OPENSHIFT_RSYSLOG_DIR}/configuration/etc/rsyslog"
+       source /${OPENSHIFT_RSYSLOG_DIR}/configuration/etc/rsyslog
+    else
+       SYSLOGD_OPTIONS="-c5"
+       echo "using default rsyslogd options ${SYSLOGD_OPTIONS}"
+    fi
+
+
+    if _is_rsyslogd_enabled; then
+       # src_user_hook pre_start_rsyslogd-1.0
+        echo "rsyslogd service is already enabled" 1>&2
+       # run_user_hook post_start_rsyslogd-1.0
+    else
+        echo "starting rsyslogd" 1>&2
+        echo $"Starting system logger: "
+        echo "starting: /sbin/rsyslogd -f ${OPENSHIFT_RSYSLOG_DIR}configuration/etc/rsyslog.conf -c5 -i ${OPENSHIFT_RSYSLOG_DIR}run/syslogd.pid" 
+        /sbin/rsyslogd ${SYSLOGD_OPTIONS} -f ${OPENSHIFT_RSYSLOG_DIR}configuration/etc/rsyslog.conf -i "${OPENSHIFT_RSYSLOG_DIR}run/syslogd.pid" 
+        RETVAL=$?
+        echo
+        [ $RETVAL -eq 0 ] && touch ${OPENSHIFT_RSYSLOG_DIR}/run/syslogd.pid
+        return $RETVAL
+    fi
+
+}  #  End of function  _rsyslogd_enable.
+
+
+function _rsyslogd_disable() {
+    if _is_rsyslogd_enabled; then
+        #these pre functions are embedded now 
+        #src_user_hook pre_stop_rsyslogd-1.0
+        /usr/bin/killall rsyslogd
+        rm -f ${OPENSHIFT_RSYSLOG_DIR}/run/syslogd.pid
+    else
+        echo "rsyslogd service is already disabled" 1>&2
+    fi
+
+}  #  End of function  _rsyslogd_disable.
+
+
+function _rsyslogd_reenable() {
+   _rsyslogd_disable
+   _rsyslogd_enable
+
+}  #  End of function  _rsyslogd_reenable.
+
+case "$1" in
+   enable|start)      _rsyslogd_enable   ;;
+   disable|stop)      _rsyslogd_disable  ;;
+   reenable|restart)  _rsyslogd_reenable ;;
+   status)            _rsyslogd_status   ;;
+esac
+

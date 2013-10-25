@@ -1,0 +1,47 @@
+#!/bin/bash 
+set -e 
+#set -x
+
+# Configures application's remote logging service (rsyslog).
+
+
+cartridge_type="rsyslogd-2.0"
+
+source $OPENSHIFT_CARTRIDGE_SDK_BASH
+
+
+RSYSLOG_BIN_DIR=/sbin
+
+mkdir ${OPENSHIFT_RSYSLOG_DIR}/{run,tmp,usr,configuration}
+chmod go+rwx /${OPENSHIFT_RSYSLOG_DIR}/run
+
+
+# Link the system rsyslogd binaries to the cart rsyslog instance directory
+ln -s ${SYSTEM_RSYSLOG_DIR}/rsyslogd ${OPENSHIFT_RSYSLOG_DIR}/bin/rsyslogd
+
+
+# From an architectural perspective it may be better to link these into 
+# the users repo?  
+# Link the gear /tmp/logs dir to the cart rsyslog logs dir
+ln -s ${OPENSHIFT_TMP_DIR}logs ${OPENSHIFT_RSYSLOG_DIR}logs
+
+# Link the gear /tmp/log socket to the cart rsyslog logs dir 
+# you never know? 
+ln -s ${OPENSHIFT_TMP_DIR}log ${OPENSHIFT_RSYSLOG_DIR}log_socket
+
+# we did support a fancy embedded dir here but now we keep it simple
+cp -af /${OPENSHIFT_RSYSLOG_DIR}/template/etc /${OPENSHIFT_RSYSLOG_DIR}/configuration/etc
+
+#copy the rsyslogd.d into the users repo .openshift config dir. 
+cp -af /${OPENSHIFT_RSYSLOG_DIR}/template/repo/rsyslogd /${OPENSHIFT_REPO_DIR}/.openshift/
+
+
+client_result ""
+client_result "$cartridge_type added to application ${application}"
+client_result ""
+client_result "This is an experimental cartridge for testing remote logging  " 
+client_result "your rsyslog config file can be extended using: <YOUR_APP_REPO>/.openshift/rsyslogd/rsyslogd.d/*.conf"
+if [ -n SYSLOGD_OPTIONS ]; then
+  client_result "your rsyslog options are: ${SYSLOGD_OPTIONS}"
+fi
+
